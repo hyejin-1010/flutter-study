@@ -23,8 +23,13 @@ class TutorialHome extends StatelessWidget {
               icon: Icon(Icons.search), tooltip: 'Search', onPressed: null),
         ],
       ),
-      body: Center(
-        child: Text('Hello, world!'),
+      body: Column(
+        children: <Widget>[
+          Center(
+            child: Text('Hello, world!'),
+          ),
+          MyButton()
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         tooltip: 'Add',
