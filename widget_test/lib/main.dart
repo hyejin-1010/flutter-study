@@ -28,7 +28,8 @@ class TutorialHome extends StatelessWidget {
           Center(
             child: Text('Hello, world!'),
           ),
-          MyButton()
+          MyButton(),
+          Counter()
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -59,6 +60,34 @@ class MyButton extends StatelessWidget {
           child: Text('Engage'),
         ),
       ),
+    );
+  }
+}
+
+class Counter extends StatefulWidget {
+  @override
+  _CounterState createState() => _CounterState();
+}
+
+class _CounterState extends State<Counter> {
+  int _counter = 0;
+
+  void _increment() {
+    setState(() {
+      _counter++;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: <Widget>[
+        RaisedButton(
+          child: Text('Increment'),
+          onPressed: _increment,
+        ),
+        Text('Count: $_counter')
+      ],
     );
   }
 }
