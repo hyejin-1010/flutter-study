@@ -1,6 +1,6 @@
 {
-    "name": "flutter_my_app",
-    "short_name": "flutter_my_app",
+    "name": "startup_namer",
+    "short_name": "startup_namer",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

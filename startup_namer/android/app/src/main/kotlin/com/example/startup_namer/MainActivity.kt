@@ -1,4 +1,4 @@
-package com.example.flutter_my_app
+package com.example.startup_namer
 
 import io.flutter.embedding.android.FlutterActivity
 
