@@ -3,65 +3,76 @@ import 'package:flutter/material.dart';
 void main() {
   runApp(MaterialApp(
     title: 'Passing Data',
-    home: TodoScreen(
-      todos: List<Todo>.generate(
-        20,
-        (index) => Todo(
-          'Todo $index',
-          'A Description of what need to be done for Todo $index'
-        )
-      ),
-    ),
+    home: HomeScreen(),
   ));
 }
 
-class Todo {
-  final String title;
-  final String description;
-
-  Todo(this.title, this.description);
-}
-
-class TodoScreen extends StatelessWidget {
-  final List<Todo> todos;
-
-  TodoScreen({Key key, @required this.todos}) : super(key: key);
-
+class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Todos'),
+        title: Text('Returning Data Demo'),
       ),
-      body: ListView.builder(
-        itemCount: todos.length,
-        itemBuilder: (context, index) {
-          return ListTile(
-            title: Text(todos[index].title),
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => DetailScreen(todo: todos[index])));
-            },
-          );
-        },
-      ),
+      body: Center(child: SelectionButton()),
     );
   }
 }
 
-class DetailScreen extends StatelessWidget {
-  final Todo todo;
+class SelectionButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return RaisedButton(
+      onPressed: () {
+        _navigateAndDisplaySelection(context);
+      },
+      child: Text('Pick an option, any option!'),
+    );
+  }
 
-  DetailScreen({Key key, @required this.todo}) : super(key: key);
+  _navigateAndDisplaySelection(BuildContext context) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => SelectionScreen())
+    );
+    
+    Scaffold.of(context)
+      ..removeCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text('$result')));
+  }
+}
 
+class SelectionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(todo.title),
+        title: Text('Pick an option'),
       ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Text(todo.description),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: RaisedButton(
+                onPressed: () {
+                  Navigator.pop(context, 'Yep!');
+                },
+                child: Text('Yep!'),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: RaisedButton(
+                onPressed: () {
+                  Navigator.pop(context, 'Nope!');
+                },
+                child: Text('Nope.'),
+              ),
+            )
+          ],
+        ),
       ),
     );
   }
