@@ -4,7 +4,7 @@ void main() {
   runApp(MyApp());
 }
 
-// ParentWidget manages the state for TabboxB
+// A mix-and-match approach
 class ParentWidget extends StatefulWidget {
   _ParentWidgetState createState() => _ParentWidgetState();
 }
@@ -12,7 +12,7 @@ class ParentWidget extends StatefulWidget {
 class _ParentWidgetState extends State<ParentWidget> {
   bool _active = false;
 
-  void _handleTabBoxChanged(bool newValue) {
+  void _handleTapboxChanged(bool newValue) {
     setState(() {
       _active = newValue;
     });
@@ -21,40 +21,68 @@ class _ParentWidgetState extends State<ParentWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: TabboxB(
+      child: TabboxC(
         active: _active,
-        onChanged: _handleTabBoxChanged,
+        onChanged: _handleTapboxChanged,
       ),
     );
   }
 }
 
-class TabboxB extends StatelessWidget {
-  TabboxB({Key key, this.active: false, @required this.onChanged})
+class TabboxC extends StatefulWidget {
+  TabboxC({Key key, this.active: false, @required this.onChanged})
     : super(key: key);
 
   final bool active;
   final ValueChanged<bool> onChanged;
 
+  _TabboxCState createState() => _TabboxCState();
+}
+
+class _TabboxCState extends State<TabboxC> {
+  bool _highlight = false;
+
+  void _handleTabDown(TapDownDetails details) {
+    setState(() {
+      _highlight = true;
+    });
+  }
+
+  void _handleTabUp(TapUpDetails details) {
+    setState(() {
+      _highlight = false;
+    });
+  }
+
+  void _handleTabCancel () {
+    setState(() {
+      _highlight = false;
+    });
+  }
+
   void _handleTab() {
-    onChanged(!active);
+    widget.onChanged(!widget.active);
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      onTapDown: _handleTabDown,
+      onTapUp: _handleTabUp,
       onTap: _handleTab,
+      onTapCancel: _handleTabCancel,
       child: Container(
         child: Center(
           child: Text(
-            active ? 'Active' : 'InActive',
+            widget.active ? 'Active' : 'InActive',
             style: TextStyle(fontSize: 32.0, color: Colors.white),
           ),
         ),
         width: 200.0,
         height: 200.0,
         decoration: BoxDecoration(
-          color: active ? Colors.lightGreen[700] : Colors.green[600]
+          color: widget.active ? Colors.lightGreen[700] : Colors.grey[600],
+          border: _highlight ? Border.all(color: Colors.teal[700], width: 10.0) : null,
         ),
       ),
     );
