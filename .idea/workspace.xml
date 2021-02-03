@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="da89b166-4b77-4b48-ac67-f0a94c21603b" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/cupertino/lib/product_list_tab.dart" beforeDir="false" afterPath="$PROJECT_DIR$/cupertino/lib/product_list_tab.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/startup_namer/ios/Runner.xcodeproj/project.pbxproj" beforeDir="false" afterPath="$PROJECT_DIR$/startup_namer/ios/Runner.xcodeproj/project.pbxproj" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="1ng3nRurE5oXB9RVhiVTwfMOtsp" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="android.sdk.path" value="$USER_HOME$/Library/Android/sdk" />
+    <property name="dart.analysis.tool.window.visible" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
+    <property name="show.migrate.to.gradle.popup" value="false" />
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="da89b166-4b77-4b48-ac67-f0a94c21603b" name="Default Changelist" comment="" />
+      <created>1611798072347</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1611798072347</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="1158" y="590" key="#Notifications" timestamp="1611798400460">
+      <screen x="0" y="0" width="2560" height="1440" />
+    </state>
+    <state x="1158" y="590" key="#Notifications/2560.230.1920.1080/0.0.2560.1440@0.0.2560.1440" timestamp="1611798400460" />
+    <state x="880" y="368" key="#Plugins" timestamp="1611798233000">
+      <screen x="0" y="0" width="2560" height="1440" />
+    </state>
+    <state x="880" y="368" key="#Plugins/2560.230.1920.1080/0.0.2560.1440@0.0.2560.1440" timestamp="1611798233000" />
+    <state x="781" y="359" key="SettingsEditor" timestamp="1611798186450">
+      <screen x="0" y="0" width="2560" height="1440" />
+    </state>
+    <state x="781" y="359" key="SettingsEditor/2560.230.1920.1080/0.0.2560.1440@0.0.2560.1440" timestamp="1611798186450" />
+    <state x="945" y="331" width="670" height="676" key="search.everywhere.popup" timestamp="1611798257357">
+      <screen x="0" y="0" width="2560" height="1440" />
+    </state>
+    <state x="945" y="331" width="670" height="676" key="search.everywhere.popup/2560.253.1920.1057/0.0.2560.1440@0.0.2560.1440" timestamp="1611798257357" />
+  </component>
+</project>
