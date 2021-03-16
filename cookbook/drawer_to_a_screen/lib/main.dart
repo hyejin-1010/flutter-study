@@ -35,8 +35,25 @@ class MyApp extends StatelessWidget {
             ],
           ),
         ),
-        body: Container(
-          child: Text('Body'),
+        body: Builder(
+          builder: (BuildContext context) {
+            return Container(
+              child: ElevatedButton(
+                child: Text('SnackBar'),
+                onPressed: () {
+                  final snackBar = SnackBar(
+                    content: Text('Yay! A SnackBar!'),
+                    action: SnackBarAction(
+                      label: 'Undo',
+                      onPressed: () {
+                      },
+                    ),
+                  );
+                  ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                },
+              ),
+            );
+          },
         ),
       ),
     );
