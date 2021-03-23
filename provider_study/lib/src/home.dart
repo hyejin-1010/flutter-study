@@ -1,36 +1,51 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:provider_study/src/provider/bottom_navigation_provider.dart';
 import 'package:provider_study/src/provider/count_provider.dart';
 import 'package:provider_study/src/ui/count_home_widget.dart';
+import 'package:provider_study/src/ui/movie_list_widget.dart';
 
 class Home extends StatelessWidget {
-  CountProvider _countProvider;
+  BottomNavigationProvider _bottomNavigationProvider;
 
   @override
   Widget build(BuildContext context) {
-    _countProvider = Provider.of<CountProvider>(context, listen: false);
+    _bottomNavigationProvider = Provider.of<BottomNavigationProvider>(context);
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Provider Sample'),
-      ),
-      body: CountHomeWidget(),
-      floatingActionButton: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: <Widget>[
-          IconButton(
-            icon: Icon(Icons.add),
-            onPressed: () {
-              _countProvider.add();
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.remove),
-            onPressed: () {
-              _countProvider.remove();
-            },
-          ),
-        ],
-      ),
+      body: _navigationBody(),
+      bottomNavigationBar: _bottomNavigationBarWidget(),
+    );
+  }
+
+  Widget _navigationBody() {
+    switch (_bottomNavigationProvider.currentPage) {
+      case 0:
+        return CountHomeWidget();
+      case 1:
+        return MovieListWidget();
+        break;
+    }
+    return Container();
+  }
+
+  Widget _bottomNavigationBarWidget() {
+    return BottomNavigationBar(
+      items: [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home),
+          label: "Home"
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.movie),
+          label: "Movie"
+        )
+      ],
+      currentIndex: _bottomNavigationProvider.currentPage,
+      selectedItemColor: Colors.red,
+      onTap: (index) {
+        _bottomNavigationProvider.updateCurrentPage(index);
+      },
     );
   }
 }

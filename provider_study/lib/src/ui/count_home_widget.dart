@@ -1,22 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:provider_study/src/components/view_count.dart';
 import 'package:provider_study/src/provider/count_provider.dart';
 
 class CountHomeWidget extends StatelessWidget {
-  const CountHomeWidget({
+  CountHomeWidget({
     Key key,
   }) : super(key: key);
 
+  CountProvider _countProvider;
+
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Consumer<CountProvider>(
-        builder: (BuildContext context, CountProvider provider, Widget child) {
-          return Text(
-            provider.count.toString(),
-            style: TextStyle(fontSize: 80),
-          );
-        },
+    _countProvider = Provider.of<CountProvider>(context, listen: false);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Count Provider'),
+      ),
+      body: ViewCount(),
+      floatingActionButton: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: <Widget>[
+          IconButton(
+            icon: Icon(Icons.add),
+            onPressed: () {
+              _countProvider.add();
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.remove),
+            onPressed: () {
+              _countProvider.remove();
+            },
+          ),
+        ],
       ),
     );
   }
