@@ -37,7 +37,8 @@ class _LogoAppState extends State<LogoApp> with SingleTickerProviderStateMixin {
       duration: const Duration(seconds: 2),
       vsync: this,
     );
-    animation = Tween<double>(begin: 0, end: 30).animate(controller)
+    // animation = Tween<double>(begin: 0, end: 30).animate(controller)
+    animation = CurvedAnimation(parent: controller, curve: Curves.easeIn)
       ..addListener(() {
         setState(() {});
       });
@@ -65,14 +66,23 @@ class _LogoAppState extends State<LogoApp> with SingleTickerProviderStateMixin {
 
     // return AnimatedLogo(animation: animation);
 
+    /*
     return GrowTransition(
       animation: animation,
       child: FlutterLogo(),
+    );
+     */
+
+    return AnimatedLogo(
+      animation: animation,
     );
   }
 }
 
 class AnimatedLogo extends AnimatedWidget {
+  static final _opacityTween = Tween<double>(begin: 0.1, end: 1);
+  static final _sizeTween = Tween<double>(begin: 0, end: 300);
+
   AnimatedLogo({
     Key? key,
     required Animation<double> animation
@@ -83,11 +93,14 @@ class AnimatedLogo extends AnimatedWidget {
     final animation = listenable as Animation<double>;
 
     return Center(
-      child: Container(
-        margin: EdgeInsets.symmetric(vertical: 10.0),
-        width: animation.value,
-        height: animation.value,
-        child: FlutterLogo(),
+      child: Opacity(
+        opacity: _opacityTween.evaluate(animation),
+        child: Container(
+          margin: EdgeInsets.symmetric(vertical: 10.0),
+          width: _sizeTween.evaluate(animation),
+          height: _sizeTween.evaluate(animation),
+          child: FlutterLogo(),
+        ),
       ),
     );
   }
