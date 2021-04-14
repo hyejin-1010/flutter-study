@@ -1,4 +1,4 @@
-package com.hellofactory.scrolling_parallax_effect
+package com.example.study
 
 import io.flutter.embedding.android.FlutterActivity
 
