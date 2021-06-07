@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 
@@ -6,20 +9,41 @@ void main() {
   runApp(MyApp());
 }
 
+const TEMP = {
+  'server': 'broker.emqx.io',
+  'id': 'flutter_client',
+  'port': '1883',
+  'topic': 'hello'
+};
+
 class MyApp extends StatefulWidget {
   @override
   _MyAppState createState() => _MyAppState();
 }
 
-const String serverAPI = 'broker.emqx.io';
-const String identifier = 'flutter_client';
-const int port = 1883;
-const String topic = 'hello';
-
 class _MyAppState extends State<MyApp> {
   MqttServerClient? client;
   TextEditingController controller = TextEditingController();
   List<String> messages = [];
+  String currentTopic = '';
+
+  dynamic info;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _setInfo();
+  }
+
+  Future<void> _setInfo () async {
+    dynamic temp = {};
+    final _storage = FlutterSecureStorage();
+    for (var key in ['server', 'id', 'port', 'topic']) {
+      String? value = await _storage.read(key: key);
+      temp[key] = value ?? TEMP[key];
+    }
+    setState(() { info = temp; });
+  }
 
   @override
   void dispose() {
@@ -51,9 +75,13 @@ class _MyAppState extends State<MyApp> {
                 ],
               ),
             )
-          : ConnectPage(
-            onConnect: connect,
-          ),
+          : info == null
+              ? Center(
+                child: CircularProgressIndicator(),
+              ) : ConnectPage(
+                info: info,
+                onConnect: connect,
+              ),
         ),
       ),
     );
@@ -78,7 +106,7 @@ class _MyAppState extends State<MyApp> {
           child: TextField(
             controller: controller,
             decoration: InputDecoration(
-              hintText: '여기에 입략해주세요.',
+              hintText: '여기에 입력해주세요.',
             ),
           ),
         ),
@@ -90,10 +118,25 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  Future<MqttServerClient> connect() async {
+  void setLocalStorage (String server, String id, String port, String topic) {
+    final _storage = FlutterSecureStorage();
+    _storage.write(key: 'server', value: server);
+    _storage.write(key: 'id', value: id);
+    _storage.write(key: 'port', value: port);
+    _storage.write(key: 'topic', value: topic);
+    info = {
+      'server': server,
+      'id': id,
+      'port': port,
+      'topic': topic
+    };
+  }
+
+  Future<MqttServerClient> connect(String server, String id, String port, String topic) async {
     setState(() {
-      client = MqttServerClient.withPort(serverAPI, identifier, port);
+      client = MqttServerClient.withPort(server, id, int.parse(port));
     });
+    setLocalStorage(server, id, port, topic);
     client!.logging(on: true);
     client!.onConnected = onConnected;
     client!.onDisconnected = onDisconnected;
@@ -101,6 +144,7 @@ class _MyAppState extends State<MyApp> {
     client!.onSubscribed = onSubscribed;
     client!.onSubscribeFail = onSubscribeFail;
     client!.pongCallback = pong;
+    currentTopic = topic;
 
     final connMessage = MqttConnectMessage()
       .withWillTopic(topic)
@@ -118,15 +162,8 @@ class _MyAppState extends State<MyApp> {
     client!.updates?.listen((List<MqttReceivedMessage<MqttMessage>> c) {
       final MqttPublishMessage message = c[0].payload as MqttPublishMessage;
       if (message.payload.message == null) { return; }
-      final payload =
-        MqttPublishPayload.bytesToStringAsString(message.payload.message!);
-      // Uint8List bytes = Uint8List.fromList(message.payload.message!.toList());
-      // ByteData byteData = message.payload.message!.buffer.asByteData();
-      // ByteBuffer buffer = byteData.buffer;
-      // Uint8List list = buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes);
-      // print('chloe test ?--- ' + utf8.decode(list));
       setState(() {
-        messages.add(payload);
+        messages.add(utf8.decode(message.payload.message!));
       });
     });
 
@@ -145,8 +182,8 @@ class _MyAppState extends State<MyApp> {
   void publish () {
     if (controller.text.isEmpty) { return; }
     final MqttClientPayloadBuilder builder = MqttClientPayloadBuilder();
-    builder.addString(controller.text);
-    client?.publishMessage(topic, MqttQos.atLeastOnce, builder.payload!);
+    builder.addUTF8String(controller.text);
+    client?.publishMessage(currentTopic, MqttQos.atLeastOnce, builder.payload!);
     setState(() { controller.text = ''; });
   }
 
@@ -180,9 +217,12 @@ class _MyAppState extends State<MyApp> {
 }
 
 class ConnectPage extends StatefulWidget {
-  final Future<MqttServerClient> Function() onConnect;
+  final Future<MqttServerClient> Function(String, String, String, String) onConnect;
+  final dynamic info;
+
   const ConnectPage({
     Key? key,
+    required this.info,
     required this.onConnect,
   }) : super(key: key);
 
@@ -199,10 +239,10 @@ class _ConnectPageState extends State<ConnectPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _serverCtrl.text = serverAPI;
-    _identifierCtrl.text = identifier;
-    _portCtrl.text = port.toString();
-    _topicCtrl.text = topic;
+    _serverCtrl.text = widget.info['server'];
+    _identifierCtrl.text = widget.info['id'];
+    _portCtrl.text = widget.info['port'];
+    _topicCtrl.text = widget.info['topic'];
   }
 
   @override
@@ -222,7 +262,12 @@ class _ConnectPageState extends State<ConnectPage> {
         _buildTextInputBox('identifier', _identifierCtrl),
         _buildTextInputBox('port', _portCtrl),
         _buildTextInputBox('topic', _topicCtrl),
-        ElevatedButton(onPressed: widget.onConnect, child: Text('Connect'))
+        ElevatedButton(
+          onPressed: () {
+            widget.onConnect(_serverCtrl.text, _identifierCtrl.text, _portCtrl.text, _topicCtrl.text);
+          },
+          child: Text('Connect'),
+        ),
       ],
     );
   }
