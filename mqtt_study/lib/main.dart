@@ -11,10 +11,11 @@ void main() {
 
 const TEMP = {
   'server': 'broker.emqx.io',
-  'id': 'flutter_client',
+  'identifier': 'flutter_client',
   'port': '1883',
   'topic': 'hello'
 };
+const KEYS = ['server', 'identifier', 'port', 'topic'];
 
 class MyApp extends StatefulWidget {
   @override
@@ -27,7 +28,7 @@ class _MyAppState extends State<MyApp> {
   List<String> messages = [];
   String currentTopic = '';
 
-  dynamic info;
+  Map<String, String>? info;
 
   @override
   void didChangeDependencies() {
@@ -36,11 +37,11 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _setInfo () async {
-    dynamic temp = {};
+    Map<String, String> temp = {};
     final _storage = FlutterSecureStorage();
-    for (var key in ['server', 'id', 'port', 'topic']) {
+    for (var key in ['server', 'identifier', 'port', 'topic']) {
       String? value = await _storage.read(key: key);
-      temp[key] = value ?? TEMP[key];
+      temp[key] = value ?? TEMP[key] ?? '';
     }
     setState(() { info = temp; });
   }
@@ -76,11 +77,10 @@ class _MyAppState extends State<MyApp> {
               ),
             )
           : info == null
-              ? Center(
-                child: CircularProgressIndicator(),
-              ) : ConnectPage(
-                info: info,
-                onConnect: connect,
+              ? Center(child: CircularProgressIndicator())
+              : ConnectPage(
+                info: info!,
+                onConnect: onConnect,
               ),
         ),
       ),
@@ -88,9 +88,12 @@ class _MyAppState extends State<MyApp> {
   }
 
   Widget _buildMessageListView () {
-    return ListView.builder(
+    return ListView.separated(
       shrinkWrap: true,
       itemCount: messages.length,
+      separatorBuilder: (BuildContext context, int index) {
+        return Divider();
+      },
       itemBuilder: (BuildContext context, int index) {
         return Container(
           child: Text(messages[index]),
@@ -118,25 +121,19 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  void setLocalStorage (String server, String id, String port, String topic) {
+  void setLocalStorage (Map<String, String> data) {
     final _storage = FlutterSecureStorage();
-    _storage.write(key: 'server', value: server);
-    _storage.write(key: 'id', value: id);
-    _storage.write(key: 'port', value: port);
-    _storage.write(key: 'topic', value: topic);
-    info = {
-      'server': server,
-      'id': id,
-      'port': port,
-      'topic': topic
-    };
+    for (String key in KEYS) {
+      _storage.write(key: key, value: data[key]);
+    }
+    info = data;
   }
 
-  Future<MqttServerClient> connect(String server, String id, String port, String topic) async {
+  Future<MqttServerClient> onConnect(Map<String, String> data) async {
     setState(() {
-      client = MqttServerClient.withPort(server, id, int.parse(port));
+      client = MqttServerClient.withPort(data['server']!, data['identifier']!, int.parse(data['port']!));
     });
-    setLocalStorage(server, id, port, topic);
+    setLocalStorage(data);
     client!.logging(on: true);
     client!.onConnected = onConnected;
     client!.onDisconnected = onDisconnected;
@@ -144,10 +141,10 @@ class _MyAppState extends State<MyApp> {
     client!.onSubscribed = onSubscribed;
     client!.onSubscribeFail = onSubscribeFail;
     client!.pongCallback = pong;
-    currentTopic = topic;
+    currentTopic = data['topic'] ?? '';
 
     final connMessage = MqttConnectMessage()
-      .withWillTopic(topic)
+      .withWillTopic(currentTopic)
       .withWillMessage('Will message')
       .startClean()
       .withWillQos(MqttQos.atLeastOnce);
@@ -155,19 +152,20 @@ class _MyAppState extends State<MyApp> {
 
     try {
       await client!.connect();
-    } catch (e) {
-      client!.disconnect();
-    }
+    } catch (e) { client!.disconnect(); }
+    _onSubscribe(currentTopic);
+    return client!;
+  }
+
+  void _onSubscribe (String topic) {
     client!.subscribe(topic, MqttQos.atLeastOnce);
     client!.updates?.listen((List<MqttReceivedMessage<MqttMessage>> c) {
       final MqttPublishMessage message = c[0].payload as MqttPublishMessage;
       if (message.payload.message == null) { return; }
-      setState(() {
-        messages.add(utf8.decode(message.payload.message!));
-      });
+      String data = utf8.decode(message.payload.message!);
+      dynamic response = json.decode(data);
+      setState(() { messages.add(response['text']); });
     });
-
-    return client!;
   }
 
   void disconnect () {
@@ -182,7 +180,9 @@ class _MyAppState extends State<MyApp> {
   void publish () {
     if (controller.text.isEmpty) { return; }
     final MqttClientPayloadBuilder builder = MqttClientPayloadBuilder();
-    builder.addUTF8String(controller.text);
+
+    dynamic data = { 'text': controller.text };
+    builder.addUTF8String(json.encode(data));
     client?.publishMessage(currentTopic, MqttQos.atLeastOnce, builder.payload!);
     setState(() { controller.text = ''; });
   }
@@ -217,8 +217,8 @@ class _MyAppState extends State<MyApp> {
 }
 
 class ConnectPage extends StatefulWidget {
-  final Future<MqttServerClient> Function(String, String, String, String) onConnect;
-  final dynamic info;
+  final Future<MqttServerClient> Function(Map<String, String>) onConnect;
+  final Map<String, String> info;
 
   const ConnectPage({
     Key? key,
@@ -239,10 +239,10 @@ class _ConnectPageState extends State<ConnectPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _serverCtrl.text = widget.info['server'];
-    _identifierCtrl.text = widget.info['id'];
-    _portCtrl.text = widget.info['port'];
-    _topicCtrl.text = widget.info['topic'];
+    _serverCtrl.text = widget.info['server'] ?? '';
+    _identifierCtrl.text = widget.info['identifier'] ?? '';
+    _portCtrl.text = widget.info['port'] ?? '';
+    _topicCtrl.text = widget.info['topic'] ?? '';
   }
 
   @override
@@ -264,7 +264,11 @@ class _ConnectPageState extends State<ConnectPage> {
         _buildTextInputBox('topic', _topicCtrl),
         ElevatedButton(
           onPressed: () {
-            widget.onConnect(_serverCtrl.text, _identifierCtrl.text, _portCtrl.text, _topicCtrl.text);
+            widget.info['server'] = _serverCtrl.text;
+            widget.info['identifier'] = _identifierCtrl.text;
+            widget.info['port'] = _portCtrl.text;
+            widget.info['topic'] = _topicCtrl.text;
+            widget.onConnect(widget.info);
           },
           child: Text('Connect'),
         ),
