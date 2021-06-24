@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
-import 'package:mqtt_study/screens/connect.dart';
+import 'package:mqtt_study/screens/aws_test/aws_test.dart';
 
 void main() {
   runApp(MyApp());
@@ -55,6 +55,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    /*
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
@@ -84,6 +85,20 @@ class _MyAppState extends State<MyApp> {
                 onConnect: onConnect,
               ),
         ),
+      ),
+    );
+     */
+
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text('MQTT'),
+        ),
+        body: AWSTestScreen(),
       ),
     );
   }
@@ -189,11 +204,11 @@ class _MyAppState extends State<MyApp> {
   }
 
   void onConnected() {
-    print('Connected');
+    print('chloe test Connected');
   }
 
   void onDisconnected() {
-    print('Disconnected');
+    print('chloe test Disconnected');
     setState(() {
       client = null;
       messages = [];
@@ -201,10 +216,12 @@ class _MyAppState extends State<MyApp> {
   }
 
   void onSubscribed(String topic) {
+    print('chloe test subscribe $topic');
     print('Subscribed topic: $topic');
   }
 
   void onSubscribeFail(String topic) {
+    print('chloe test subscribe $topic Fail');
     print('Failed to subscribe $topic');
   }
 
