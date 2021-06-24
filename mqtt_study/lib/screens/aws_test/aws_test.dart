@@ -1,10 +1,13 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
+
+const HOST = 'mqtt://a3g9lwq85r20wi-ats.iot.ap-northeast-2.amazonaws.com';
+const CLIENT_ID = 'AppTest';
+const PREFIX = '\$aws/things/Test/shadow';
 
 class AWSTestScreen extends StatefulWidget {
   const AWSTestScreen({Key? key}) : super(key: key);
@@ -14,18 +17,26 @@ class AWSTestScreen extends StatefulWidget {
 }
 
 class _AWSTestScreenState extends State<AWSTestScreen> {
-  
-  MqttServerClient client = MqttServerClient('mqtt://a3g9lwq85r20wi-ats.iot.ap-northeast-2.amazonaws.com', '');
+  MqttServerClient client = MqttServerClient(HOST, '');
   String status = '';
   bool connected = false;
+  bool toggleValue = false;
   
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: Center(
-        child: connected
-          ? ElevatedButton(onPressed: _disconnect, child: Text('DisConnect'))
-          : ElevatedButton(onPressed: _connect, child: Text('Connect')),
+      alignment: Alignment.center,
+      child: Column(
+        children: [
+          Spacer(),
+          Switch(value: toggleValue, onChanged: (_) {}),
+          connected
+              ? ElevatedButton(onPressed: _disconnect, child: Text('DisConnect'))
+              : ElevatedButton(onPressed: _connect, child: Text('Connect')),
+          if (connected)
+            ElevatedButton(onPressed: _publish, child: Text('Publish')),
+          Spacer(),
+        ],
       ),
     );
   }
@@ -44,6 +55,11 @@ class _AWSTestScreenState extends State<AWSTestScreen> {
     client.disconnect();
   }
 
+  _publish () {
+    final MqttClientPayloadBuilder builder = MqttClientPayloadBuilder();
+    client.publishMessage('$PREFIX/get', MqttQos.atLeastOnce, builder.payload!);
+  }
+
   Future<bool> mqttConnect(String uniqueId) async {
     setStatus('Connecting MQTT Broker');
     ByteData rootCA = await rootBundle.load('assets/certs/root-CA.crt');
@@ -55,13 +71,10 @@ class _AWSTestScreenState extends State<AWSTestScreen> {
     context.useCertificateChainBytes(deviceCert.buffer.asUint8List());
     context.usePrivateKeyBytes(privateKey.buffer.asUint8List());
 
-    // String id = 'sdk-nodejs-d0772ced-6431-419b-bf8b-1d35f33de11b';
-    String id = 'AppTest';
-
-    client = MqttServerClient('a3g9lwq85r20wi-ats.iot.ap-northeast-2.amazonaws.com', id);
+    client = MqttServerClient('a3g9lwq85r20wi-ats.iot.ap-northeast-2.amazonaws.com', CLIENT_ID);
     client.securityContext = context;
-    // client.logging(on: true);
-    // client.keepAlivePeriod = 300;
+    client.logging(on: true);
+    client.keepAlivePeriod = 300;
     client.port = 8883;
     client.secure = true;
     client.onConnected = onConnected;
@@ -71,7 +84,7 @@ class _AWSTestScreenState extends State<AWSTestScreen> {
     client.pongCallback = pong;
 
     final MqttConnectMessage connMess = MqttConnectMessage()
-        .withClientIdentifier(id)
+        .withClientIdentifier(CLIENT_ID)
         .startClean();
     client.connectionMessage = connMess;
 
@@ -79,18 +92,22 @@ class _AWSTestScreenState extends State<AWSTestScreen> {
       await client.connect();
     } catch (err) { print('${err.toString()}'); }
 
-    if (client.connectionStatus!.state == MqttConnectionState.connected) {
-      print('Chloe Connected to AWS Successfully!');
-    } else { return false; }
+    if (client.connectionStatus!.state != MqttConnectionState.connected) { return false; }
 
-    // String acceptedTopic = '\$aws/things/AppTest/shadow/get/accepted';
-    client.subscribe('topic_2', MqttQos.atMostOnce);
+    String acceptedTopic = '$PREFIX/get/accepted';
+    String rejectedTopic = '$PREFIX/get/rejected';
+    client.subscribe(acceptedTopic, MqttQos.atMostOnce);
+    client.subscribe(rejectedTopic, MqttQos.atMostOnce);
     client.updates?.listen((List<MqttReceivedMessage<MqttMessage>> c) {
+      String topic = c[0].topic;
       final MqttPublishMessage message = c[0].payload as MqttPublishMessage;
       if (message.payload.message == null) { return; }
-      String data = utf8.decode(message.payload.message!);
-      dynamic response = json.decode(data);
-      print('chloe test accept : $response');
+      // String data = utf8.decode(message.payload.message!);
+      // dynamic response = json.decode(data);
+      // print('chloe test listen topic: $topic, response: $response');
+      if (topic == acceptedTopic) {
+        setState(() { toggleValue = !toggleValue; });
+      }
     });
 
     return false;
