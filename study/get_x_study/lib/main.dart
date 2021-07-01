@@ -5,6 +5,7 @@ import 'package:get_x_study/screens/screen_four.dart';
 import 'package:get_x_study/screens/screen_one.dart';
 import 'package:get_x_study/screens/screen_three.dart';
 import 'package:get_x_study/screens/screen_two.dart';
+import 'package:get_x_study/screens/state_management.dart';
 
 void main() {
   runApp(MyApp());
@@ -45,8 +46,8 @@ class MyApp extends StatelessWidget {
         body: Container(
           child: Center(
             child: ElevatedButton(
-              onPressed: () { Get.to(ScreenOne()); },
-              child: Text('Go To Screen On'),
+              onPressed: () { Get.to(StateManagement()); },
+              child: Text('Go To State Management'),
             ),
           ),
         ),
