@@ -10,9 +10,9 @@ class InstagramScreen extends StatefulWidget {
 
 class _InstagramScreenState extends State<InstagramScreen> with TickerProviderStateMixin {
   late final AnimationController _controller = AnimationController(
-    duration: const Duration(seconds: 5),
+    duration: const Duration(seconds: 1),
     vsync: this,
-  )..repeat();
+  );
 
   @override
   void initState() {
@@ -30,12 +30,25 @@ class _InstagramScreenState extends State<InstagramScreen> with TickerProviderSt
     Size size = MediaQuery.of(context).size;
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Instagram'),
+        actions: [
+          TextButton(
+            style: TextButton.styleFrom(primary: Colors.white),
+            onPressed: () {
+              _controller.reset();
+              _controller.forward();
+            },
+            child: const Text('Start'),
+          ),
+        ],
+      ),
       body: AnimatedBuilder(
         animation: _controller,
         builder: (context, child) {
           return SizedBox(
             width: size.width,
-            height: size.height,
+            height: size.height - 100.0,
             child: CustomPaint(
               painter: InstaPainter(_controller.value),
               child: child,
